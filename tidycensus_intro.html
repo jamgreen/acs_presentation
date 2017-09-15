@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="author" content="Jamaal Green" />
+  <meta name="dcterms.date" content="2017-09-14" />
+  <title>Pragmatic Approach to Census Analysis</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+  <link rel="stylesheet" href="tidycensus_intro_files/reveal.js-3.3.0.1/css/reveal.css"/>
+
+
+
+<link rel="stylesheet" href="tidycensus_intro_files/reveal.js-3.3.0.1/css/theme/black.css" id="theme">
+
+<style type="text/css">
+.reveal section img {
+  background: rgba(255, 255, 255, 0.85);
+}
+</style>
+
+  <!-- some tweaks to reveal css -->
+  <style type="text/css">
+    .reveal h1 { font-size: 2.0em; }
+    .reveal h2 { font-size: 1.5em;  }
+    .reveal h3 { font-size: 1.25em;	}
+    .reveal h4 { font-size: 1em;	}
+
+    .reveal .slides>section,
+    .reveal .slides>section>section {
+      padding: 0px 0px;
+    }
+
+
+
+    .reveal table {
+      border-width: 1px;
+      border-spacing: 2px;
+      border-style: dotted;
+      border-color: gray;
+      border-collapse: collapse;
+      font-size: 0.7em;
+    }
+
+    .reveal table th {
+      border-width: 1px;
+      padding-left: 10px;
+      padding-right: 25px;
+      font-weight: bold;
+      border-style: dotted;
+      border-color: gray;
+    }
+
+    .reveal table td {
+      border-width: 1px;
+      padding-left: 10px;
+      padding-right: 25px;
+      border-style: dotted;
+      border-color: gray;
+    }
+
+
+  </style>
+
+    <style type="text/css">code{white-space: pre;}</style>
+
+
+<!-- Printing and PDF exports -->
+<script id="paper-css" type="application/dynamic-css">
+
+/* Default Print Stylesheet Template
+   by Rob Glazebrook of CSSnewbie.com
+   Last Updated: June 4, 2008
+
+   Feel free (nay, compelled) to edit, append, and
+   manipulate this file as you see fit. */
+
+
+@media print {
+
+	/* SECTION 1: Set default width, margin, float, and
+	   background. This prevents elements from extending
+	   beyond the edge of the printed page, and prevents
+	   unnecessary background images from printing */
+	html {
+		background: #fff;
+		width: auto;
+		height: auto;
+		overflow: visible;
+	}
+	body {
+		background: #fff;
+		font-size: 20pt;
+		width: auto;
+		height: auto;
+		border: 0;
+		margin: 0 5%;
+		padding: 0;
+		overflow: visible;
+		float: none !important;
+	}
+
+	/* SECTION 2: Remove any elements not needed in print.
+	   This would include navigation, ads, sidebars, etc. */
+	.nestedarrow,
+	.controls,
+	.fork-reveal,
+	.share-reveal,
+	.state-background,
+	.reveal .progress,
+	.reveal .backgrounds {
+		display: none !important;
+	}
+
+	/* SECTION 3: Set body font face, size, and color.
+	   Consider using a serif font for readability. */
+	body, p, td, li, div {
+		font-size: 20pt!important;
+		font-family: Georgia, "Times New Roman", Times, serif !important;
+		color: #000;
+	}
+
+	/* SECTION 4: Set heading font face, sizes, and color.
+	   Differentiate your headings from your body text.
+	   Perhaps use a large sans-serif for distinction. */
+	h1,h2,h3,h4,h5,h6 {
+		color: #000!important;
+		height: auto;
+		line-height: normal;
+		font-family: Georgia, "Times New Roman", Times, serif !important;
+		text-shadow: 0 0 0 #000 !important;
+		text-align: left;
+		letter-spacing: normal;
+	}
+	/* Need to reduce the size of the fonts for printing */
+	h1 { font-size: 28pt !important;  }
+	h2 { font-size: 24pt !important; }
+	h3 { font-size: 22pt !important; }
+	h4 { font-size: 22pt !important; font-variant: small-caps; }
+	h5 { font-size: 21pt !important; }
+	h6 { font-size: 20pt !important; font-style: italic; }
+
+	/* SECTION 5: Make hyperlinks more usable.
+	   Ensure links are underlined, and consider appending
+	   the URL to the end of the link for usability. */
+	a:link,
+	a:visited {
+		color: #000 !important;
+		font-weight: bold;
+		text-decoration: underline;
+	}
+	/*
+	.reveal a:link:after,
+	.reveal a:visited:after {
+		content: " (" attr(href) ") ";
+		color: #222 !important;
+		font-size: 90%;
+	}
+	*/
+
+
+	/* SECTION 6: more reveal.js specific additions by @skypanther */
+	ul, ol, div, p {
+		visibility: visible;
+		position: static;
+		width: auto;
+		height: auto;
+		display: block;
+		overflow: visible;
+		margin: 0;
+		text-align: left !important;
+	}
+	.reveal pre,
+	.reveal table {
+		margin-left: 0;
+		margin-right: 0;
+	}
+	.reveal pre code {
+		padding: 20px;
+		border: 1px solid #ddd;
+	}
+	.reveal blockquote {
+		margin: 20px 0;
+	}
+	.reveal .slides {
+		position: static !important;
+		width: auto !important;
+		height: auto !important;
+
+		left: 0 !important;
+		top: 0 !important;
+		margin-left: 0 !important;
+		margin-top: 0 !important;
+		padding: 0 !important;
+		zoom: 1 !important;
+
+		overflow: visible !important;
+		display: block !important;
+
+		text-align: left !important;
+		-webkit-perspective: none;
+		   -moz-perspective: none;
+		    -ms-perspective: none;
+		        perspective: none;
+
+		-webkit-perspective-origin: 50% 50%;
+		   -moz-perspective-origin: 50% 50%;
+		    -ms-perspective-origin: 50% 50%;
+		        perspective-origin: 50% 50%;
+	}
+	.reveal .slides section {
+		visibility: visible !important;
+		position: static !important;
+		width: auto !important;
+		height: auto !important;
+		display: block !important;
+		overflow: visible !important;
+
+		left: 0 !important;
+		top: 0 !important;
+		margin-left: 0 !important;
+		margin-top: 0 !important;
+		padding: 60px 20px !important;
+		z-index: auto !important;
+
+		opacity: 1 !important;
+
+		page-break-after: always !important;
+
+		-webkit-transform-style: flat !important;
+		   -moz-transform-style: flat !important;
+		    -ms-transform-style: flat !important;
+		        transform-style: flat !important;
+
+		-webkit-transform: none !important;
+		   -moz-transform: none !important;
+		    -ms-transform: none !important;
+		        transform: none !important;
+
+		-webkit-transition: none !important;
+		   -moz-transition: none !important;
+		    -ms-transition: none !important;
+		        transition: none !important;
+	}
+	.reveal .slides section.stack {
+		padding: 0 !important;
+	}
+	.reveal section:last-of-type {
+		page-break-after: avoid !important;
+	}
+	.reveal section .fragment {
+		opacity: 1 !important;
+		visibility: visible !important;
+
+		-webkit-transform: none !important;
+		   -moz-transform: none !important;
+		    -ms-transform: none !important;
+		        transform: none !important;
+	}
+	.reveal section img {
+		display: block;
+		margin: 15px 0px;
+		background: rgba(255,255,255,1);
+		border: 1px solid #666;
+		box-shadow: none;
+	}
+
+	.reveal section small {
+		font-size: 0.8em;
+	}
+
+}  
+</script>
+
+
+<script id="pdf-css" type="application/dynamic-css">
+    
+/**
+ * This stylesheet is used to print reveal.js
+ * presentations to PDF.
+ *
+ * https://github.com/hakimel/reveal.js#pdf-export
+ */
+
+* {
+	-webkit-print-color-adjust: exact;
+}
+
+body {
+	margin: 0 auto !important;
+	border: 0;
+	padding: 0;
+	float: none !important;
+	overflow: visible;
+}
+
+html {
+	width: 100%;
+	height: 100%;
+	overflow: visible;
+}
+
+/* Remove any elements not needed in print. */
+.nestedarrow,
+.reveal .controls,
+.reveal .progress,
+.reveal .playback,
+.reveal.overview,
+.fork-reveal,
+.share-reveal,
+.state-background {
+	display: none !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	text-shadow: 0 0 0 #000 !important;
+}
+
+.reveal pre code {
+	overflow: hidden !important;
+	font-family: Courier, 'Courier New', monospace !important;
+}
+
+ul, ol, div, p {
+	visibility: visible;
+	position: static;
+	width: auto;
+	height: auto;
+	display: block;
+	overflow: visible;
+	margin: auto;
+}
+.reveal {
+	width: auto !important;
+	height: auto !important;
+	overflow: hidden !important;
+}
+.reveal .slides {
+	position: static;
+	width: 100%;
+	height: auto;
+
+	left: auto;
+	top: auto;
+	margin: 0 !important;
+	padding: 0 !important;
+
+	overflow: visible;
+	display: block;
+
+	-webkit-perspective: none;
+	   -moz-perspective: none;
+	    -ms-perspective: none;
+	        perspective: none;
+
+	-webkit-perspective-origin: 50% 50%; /* there isn't a none/auto value but 50-50 is the default */
+	   -moz-perspective-origin: 50% 50%;
+	    -ms-perspective-origin: 50% 50%;
+	        perspective-origin: 50% 50%;
+}
+
+.reveal .slides section {
+	page-break-after: always !important;
+
+	visibility: visible !important;
+	position: relative !important;
+	display: block !important;
+	position: relative !important;
+
+	margin: 0 !important;
+	padding: 0 !important;
+	box-sizing: border-box !important;
+	min-height: 1px;
+
+	opacity: 1 !important;
+
+	-webkit-transform-style: flat !important;
+	   -moz-transform-style: flat !important;
+	    -ms-transform-style: flat !important;
+	        transform-style: flat !important;
+
+	-webkit-transform: none !important;
+	   -moz-transform: none !important;
+	    -ms-transform: none !important;
+	        transform: none !important;
+}
+
+.reveal section.stack {
+	margin: 0 !important;
+	padding: 0 !important;
+	page-break-after: avoid !important;
+	height: auto !important;
+	min-height: auto !important;
+}
+
+.reveal img {
+	box-shadow: none;
+}
+
+.reveal .roll {
+	overflow: visible;
+	line-height: 1em;
+}
+
+/* Slide backgrounds are placed inside of their slide when exporting to PDF */
+.reveal section .slide-background {
+	display: block !important;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	z-index: -1;
+}
+
+/* All elements should be above the slide-background */
+.reveal section>* {
+	position: relative;
+	z-index: 1;
+}
+
+/* Display slide speaker notes when 'showNotes' is enabled */
+.reveal .speaker-notes-pdf {
+	display: block;
+	width: 100%;
+	max-height: none;
+	left: auto;
+	top: auto;
+	z-index: 100;
+}
+
+/* Display slide numbers when 'slideNumber' is enabled */
+.reveal .slide-number-pdf {
+	display: block;
+	position: absolute;
+	font-size: 14px;
+}
+
+</script>
+
+
+<script>
+var style = document.createElement( 'style' );
+style.type = 'text/css';
+var style_script_id = window.location.search.match( /print-pdf/gi ) ? 'pdf-css' : 'paper-css';
+var style_script = document.getElementById(style_script_id).text;
+style.innerHTML = style_script;
+document.getElementsByTagName('head')[0].appendChild(style);
+</script>
+
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+<section>
+    <h1 class="title">Pragmatic Approach to Census Analysis</h1>
+    <h2 class="author">Jamaal Green</h2>
+    <h3 class="date">September 14, 2017</h3>
+</section>
+
+<section class="slide level2">
+
+<script
+  src="https://code.jquery.com/jquery-3.1.1.min.js"
+  integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+  crossorigin="anonymous"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+<p><link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.min.css" rel="stylesheet" type="text/css"/></p>
+</section>
+<section><section id="introduction" class="titleslide slide level1"><h1>Introduction</h1></section><section id="about-me" class="slide level2">
+<h1>About Me</h1>
+<ul>
+<li class="fragment">PhD Candidate in Urban Studies and Planning</li>
+<li class="fragment">My dissertation is examining industrial zoning and labor market change</li>
+<li class="fragment">I use a pretty wide array of census products for work (ACS, PUMS, LEHD)</li>
+</ul>
+</section><section id="a-pragmatic-approach" class="slide level2">
+<h1>A Pragmatic Approach</h1>
+<p>“Let the question guide your method”</p>
+<p>Likewise…</p>
+<p>Let your problems guide your tools</p>
+</section><section id="whats-your-workflow-normally-resemble" class="slide level2">
+<h1>What’s your workflow normally resemble?</h1>
+<p>The steps many social data analysts and GIS user have to make:</p>
+<ul>
+<li class="fragment">Tabular Data collection/import (for us clearly varied Census products)</li>
+<li class="fragment">Spatial Data collection(Tigerline files, anyone?)</li>
+<li class="fragment">Tabular data cleaning, munging, and joins</li>
+<li class="fragment">Table to spatial data joins (we’ve all done this in Arc with moderate success)</li>
+<li class="fragment">If making a maps…spatial processing (clips, intersections, spatial joins)</li>
+<li class="fragment">Other visualizations and report writing</li>
+</ul>
+</section></section>
+<section><section id="enter-r" class="titleslide slide level1"><h1>Enter R</h1></section><section id="what-is-r" class="slide level2">
+<h1>What is R?</h1>
+<ul>
+<li class="fragment">A powerful language</li>
+<li class="fragment">Application</li>
+<li class="fragment">“Do it all” workbench</li>
+</ul>
+</section><section id="but-why-r" class="slide level2">
+<h1>But why R?</h1>
+<ul>
+<li class="fragment">It’s free</li>
+<li class="fragment">It’s fast</li>
+<li class="fragment">It’s data type agnostic (read any variety of text files, .shp. GEOJSON, GEOTIFF)</li>
+<li class="fragment">Massive number of packages for statistical or spatial analysis and visualization</li>
+<li class="fragment">Many things that are hard or slow in other applications (table joins in Arc, anyone?) are fast in R</li>
+<li class="fragment">IT’S FREE</li>
+</ul>
+</section><section id="but-why-should-i" class="slide level2">
+<h1>But why should I?</h1>
+<p>Has the following ever happened to you?</p>
+<ul>
+<li class="fragment">Need to download multiple variables over multiple years and you get a data folder filled with ambiguously named tables that you end up deleting anyway?</li>
+<li class="fragment">Had to change your geography of interest on short notice and then go through the time consuming process of redownloading and processing?</li>
+<li class="fragment">Attempted to rename a column in ArcMap (yes, I know this is now available in ArcPro)?</li>
+</ul>
+</section><section id="lets-be-pragmatic" class="slide level2">
+<h1>Let’s Be Pragmatic</h1>
+<section style="text-align: left;">
+<p>These recurring challenges can be fully, or partially addressed, by learning a little bit of R (or some other scripting language, depending on your need)</p>
+<p>Let’s take an example…</p>
+</section>
+</section></section>
+<section><section id="tidycensusa-better-way" class="titleslide slide level1"><h1>Tidycensus…A Better Way</h1></section><section id="tidycensusone-stop-shop-for-acs-data" class="slide level2">
+<h1>Tidycensus…one stop shop for ACS data</h1>
+<ul>
+<li class="fragment">R package authored by Prof. Kyle Walker at TCU to make gathering and visualizing census data easier</li>
+<li class="fragment">The package uses the census API to call ACS and decennial data as well as ACS Data Profile tables</li>
+<li class="fragment">Data is returned in either wide or long format and there is an option to join the data to its appropriate Tigerline geometry</li>
+</ul>
+</section><section id="a-quick-example" class="slide level2">
+<h1>A quick example…</h1>
+<p>Our assignment: Get latest 5 year MHI for Multnomah County at Tract Level and graph the results (as an added bonus, and in the interest of transparency, let’s include CVs)</p>
+<pre><code>if(!require(pacman)){install.packages(&quot;pacman&quot;); library(pacman)}
+p_load(ggplot2, tidycensus, dplyr)
+
+acs_key &lt;- Sys.getenv(&quot;CENSUS_API_KEY&quot;)
+
+#Enter the variables and geographies below
+census_title &lt;- c(&quot;Median Household Income by County:\n Coefficient of Variation&quot;)
+census_var &lt;- c(&quot;B19013_001E&quot;)
+census_geog &lt;- c(&quot;county&quot;)
+census_state &lt;- c(&quot;or&quot;)
+
+
+acs_data &lt;- get_acs(geography = census_geog, variables = census_var, state = census_state, 
+                    output = &quot;wide&quot;)
+
+#Make more readable column names
+acs_data &lt;- acs_data %&gt;% rename(MHI_est = B19013_001E , MHI_moe = B19013_001M)
+
+#Calculate the SE, CV for future reference
+acs_data &lt;- acs_data %&gt;% mutate(se = MHI_moe/1.645, cv = (se/MHI_est)*100)
+
+
+
+#Plot Percentages with Derived MOE
+acs_plot &lt;- acs_data %&gt;%
+  ggplot(aes(x = MHI_est, y = reorder(NAME, MHI_est))) +
+  geom_point(color = &quot;black&quot;, size = 2) +
+  geom_errorbarh(aes(xmin = MHI_est - MHI_moe, xmax = MHI_est + MHI_moe )) +
+  labs(title = paste(census_title),
+       subtitle = paste0(&quot;Oregon 2011-2015 American Community Survey&quot;),
+       y = &quot;&quot;,
+       x = &quot;Median Household Income&quot;) + 
+  scale_x_continuous(labels = scales::dollar) + theme_minimal() +
+  theme(panel.grid.minor.x  = element_blank(),
+        panel.grid.major.x = element_blank())
+
+plot(acs_plot)
+</code></pre>
+</section><section id="our-output" class="slide level2">
+<h1>Our Output</h1>
+<p><img src="tidycensus_intro_files/figure-revealjs/unnamed-chunk-2-1.png" width="768" /></p>
+</section></section>
+    </div>
+  </div>
+
+  <script src="tidycensus_intro_files/reveal.js-3.3.0.1/lib/js/head.min.js"></script>
+  <script src="tidycensus_intro_files/reveal.js-3.3.0.1/js/reveal.js"></script>
+
+  <script>
+
+      // Full list of configuration options available at:
+      // https://github.com/hakimel/reveal.js#configuration
+      Reveal.initialize({
+        // Push each slide change to the browser history
+        history: true,
+        // Vertical centering of slides
+        center: false,
+        // Transition style
+        transition: 'slide', // none/fade/slide/convex/concave/zoom
+        // Transition style for full page slide backgrounds
+        backgroundTransition: 'default', // none/fade/slide/convex/concave/zoom
+
+
+
+        // Optional reveal.js plugins
+        dependencies: [
+          { src: 'tidycensus_intro_files/reveal.js-3.3.0.1/plugin/zoom-js/zoom.js', async: true },
+        ]
+      });
+    </script>
+  <!-- dynamically load mathjax for compatibility with self-contained -->
+  <script>
+    (function () {
+      var script = document.createElement("script");
+      script.type = "text/javascript";
+      script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+      document.getElementsByTagName("head")[0].appendChild(script);
+    })();
+  </script>
+
+<script>
+  (function() {
+    if (window.jQuery) {
+      Reveal.addEventListener( 'slidechanged', function(event) {  
+        window.jQuery(event.previousSlide).trigger('hidden');
+        window.jQuery(event.currentSlide).trigger('shown');
+      });
+    }
+  })();
+</script>
+
+
+  </body>
+</html>

@@ -1,0 +1,187 @@
+---
+title: "Pragmatic Approach to Census Analysis"
+author: "Jamaal Green"
+date: "September 14, 2017"
+output: 
+  revealjs::revealjs_presentation:
+    theme: "black"
+    transition: slide
+    self_contained: false
+    reveal_plugins: ["zoom"]
+    incremental: true
+---
+
+<script
+  src="https://code.jquery.com/jquery-3.1.1.min.js"
+  integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+  crossorigin="anonymous"></script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+<link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.min.css" rel="stylesheet" type="text/css"/>
+
+#Introduction
+```{r, message=FALSE, warning=FALSE, include=FALSE}
+library(knitr)
+```
+
+##About Me
+
+* PhD Candidate in Urban Studies and Planning
+* My dissertation is examining industrial zoning and labor market change
+* I use a pretty wide array of census products for work (ACS, PUMS, LEHD)
+
+##A Pragmatic Approach
+
+"Let the question guide your method"
+
+Likewise...
+
+Let your problems guide your tools
+
+##What's your workflow normally resemble?
+
+The steps many social data analysts and GIS user have to make:
+
+* Tabular Data collection/import (for us clearly varied Census products)
+* Spatial Data collection(Tigerline files, anyone?)
+* Tabular data cleaning, munging, and joins
+* Table to spatial data joins (we've all done this in Arc with moderate success)
+* If making a maps...spatial processing (clips, intersections, spatial joins)
+* Other visualizations and report writing
+
+#Enter R
+
+##What is R?
+
+- A powerful language
+- Application
+- "Do it all" workbench
+
+##But why R?
+
+- It's free
+- It's fast
+- It's data type agnostic (read any variety of text files, .shp. GEOJSON, GEOTIFF)
+- Massive number of packages for statistical or spatial analysis and visualization
+- Many things that are hard or slow in other applications (table joins in Arc, anyone?) are fast in R 
+- IT'S FREE
+
+##But why should I?
+
+Has the following ever happened to you?
+
+- Need to download multiple variables over multiple years and you get a data folder filled with ambiguously named tables that you end up deleting anyway?
+- Had to change your geography of interest on short notice and then go through the time consuming process of redownloading and processing?
+- Attempted to rename a column in ArcMap (yes, I know this is now available in ArcPro)?
+
+##Let's Be Pragmatic
+
+<section style="text-align: left;">
+
+These recurring challenges can be fully, or partially addressed, by learning a little bit of R 
+
+Let's take an example...
+
+</section>
+
+#Tidycensus...A Better Way
+
+##Tidycensus...one stop shop for ACS data
+
+- R package authored by Prof. Kyle Walker at TCU to make gathering and visualizing census data easier
+- The package uses the census API to call ACS and decennial data as well as ACS Data Profile tables
+- Data is returned in either wide or long format and there is an option to join the data to its appropriate Tigerline geometry
+
+##A quick example...
+
+Our assignment: Get latest 5 year MHI for Multnomah County at Tract Level and graph the results (as an added bonus, and in the interest of transparency, let's include CVs)
+
+```
+if(!require(pacman)){install.packages("pacman"); library(pacman)}
+p_load(ggplot2, tidycensus, dplyr)
+
+acs_key <- Sys.getenv("CENSUS_API_KEY")
+
+#Enter the variables and geographies below
+census_title <- c("Median Household Income by County:\n 
+Coefficient of Variation")
+census_var <- c("B19013_001E")
+census_geog <- c("county")
+census_state <- c("or")
+
+
+acs_data <- get_acs(geography = census_geog, variables = 
+census_var, state = census_state, output = "wide")
+
+#Make more readable column names
+acs_data <- acs_data %>% rename(MHI_est = B19013_001E , MHI_moe = B19013_001M)
+
+#Calculate the SE, CV for future reference
+acs_data <- acs_data %>% mutate(se = MHI_moe/1.645, cv = (se/MHI_est)*100)
+
+
+
+#Plot Percentages with Derived MOE
+acs_plot <- acs_data %>%
+  ggplot(aes(x = MHI_est, y = reorder(NAME, MHI_est))) +
+  geom_point(color = "black", size = 2) +
+  geom_errorbarh(aes(xmin = MHI_est - MHI_moe, xmax = MHI_est + MHI_moe )) +
+  labs(title = paste(census_title),
+       subtitle = paste0("Oregon 2011-2015 American Community Survey"),
+       y = "",
+       x = "Median Household Income") + 
+  scale_x_continuous(labels = scales::dollar) + theme_minimal() +
+  theme(panel.grid.minor.x  = element_blank(),
+        panel.grid.major.x = element_blank())
+
+plot(acs_plot)
+
+```
+
+##Our Output
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+if(!require(pacman)){install.packages("pacman"); library(pacman)}
+p_load(ggplot2, tidycensus, dplyr)
+
+
+#key <- census_api_key("c67f1b3134300374d51a55c543649f843fb7d2b3",install = TRUE)
+acs_key <- Sys.getenv("CENSUS_API_KEY")
+
+#Enter the variables and geographies below
+census_title <- c("Median Household Income by County:\n Coefficient of Variation")
+census_var <- c("B19013_001E")
+census_geog <- c("county")
+census_state <- c("or")
+
+
+acs_data <- get_acs(geography = census_geog, variables = census_var, state = census_state, 
+                    output = "wide")
+
+#Make more readable column names
+acs_data <- acs_data %>% rename(MHI_est = B19013_001E , MHI_moe = B19013_001M)
+
+#Calculate the SE, CV for future reference
+acs_data <- acs_data %>% mutate(se = MHI_moe/1.645, cv = (se/MHI_est)*100)
+
+
+
+#Plot Percentages with Derived MOE
+acs_plot <- acs_data %>%
+  ggplot(aes(x = MHI_est, y = reorder(NAME, MHI_est))) +
+  geom_point(color = "black", size = 2) +
+  geom_errorbarh(aes(xmin = MHI_est - MHI_moe, xmax = MHI_est + MHI_moe )) +
+  labs(title = paste(census_title),
+       subtitle = paste0("Oregon 2011-2015 American Community Survey"),
+       y = "",
+       x = "Median Household Income") + 
+  scale_x_continuous(labels = scales::dollar) + theme_minimal() +
+  theme(panel.grid.minor.x  = element_blank(),
+        panel.grid.major.x = element_blank())
+
+print(acs_plot)
+```
+
+##Let's Stretch a Bit
+
+Let's say we now need to 
