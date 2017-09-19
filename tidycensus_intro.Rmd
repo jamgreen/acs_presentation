@@ -64,6 +64,7 @@ The steps many social data analysts and GIS user have to make:
 - It's data type agnostic (read any variety of text files, .shp. GEOJSON, GEOTIFF)
 - Massive number of packages for statistical or spatial analysis and visualization
 - Many things that are hard or slow in other applications (table joins in Arc, anyone?) are fast in R 
+- Large, helpful online community and growing variety of books/guides/courses
 - IT'S FREE
 
 ##But why should I?
@@ -78,7 +79,7 @@ Has the following ever happened to you?
 
 <section style="text-align: left;">
 
-These recurring challenges can be fully, or partially addressed, by learning a little bit of R 
+These recurring challenges can be better addressed (saving yourself precious time) by learning a little bit of R 
 
 Let's take an example...
 
@@ -182,6 +183,92 @@ acs_plot <- acs_data %>%
 print(acs_plot)
 ```
 
-##Let's Stretch a Bit
+#Mapping It Out
 
-Let's say we now need to 
+Your Assignment: map median household income at the census tract level for the PDX MSA OR counties and for the counties at the state level
+
+##R as a GIS- tigris and sf
+
+tigris- a package that will download tigerline shapefiles
+
+simple features- uses well known text to signify geometry allowing for spatial objects to be treated as dataframes
+
+
+
+##Tract Processing tidyverse style
+
+```
+if(!require(pacman)){install.packages("pacman"); library(pacman)}
+p_load(sf, tigris, viridis, ggthemes, ggplot2, tidycensus, stringr, dplyr)
+options(tigris_class = "sf", tigris_use_cache = TRUE)
+
+acs_key <- Sys.getenv("CENSUS_API_KEY")
+
+mhi_tables <- c("B19013_001")
+
+#download tracts and county, get the tracts for PDX Metro counties and counties for the state
+
+mhi_tract <- get_acs(geography = "tract", variables = mhi_tables, state = "OR", geometry = TRUE)
+mhi_tract <- mhi_tract %>% mutate(CountyFIPS = str_sub(GEOID, 1, 5))
+
+metro_counties <- c("41051", "41005", "41009", "41067", "41071") 
+metro_tract <- mhi_tract %>% filter(CountyFIPS %in% metro_counties)
+
+or_mhi_county <- get_acs(geography ="county", variables = mhi_tables, state = "OR", geometry = TRUE)
+```
+
+##Our Tract Map Set Up
+
+```
+p1 <- ggplot() + geom_sf(data = metro_tract, aes(fill = estimate)) +
+  coord_sf(datum = NA) + 
+  theme(plot.title = element_text(size = 16, face = "bold", margin = margin(b=10))) +
+  theme(plot.subtitle = element_text(size = 14, margin = margin(b = -20))) +
+  theme(plot.caption = element_text(size = 9, margin = margin(t = -15), hjust = 0)) +
+  scale_fill_viridis(labels = scales::dollar, name = "MHI Estimate") +
+  labs( caption = "Source: US Census Bureau ACS (2011-2015)",
+        title = "Median Household Income for PDX Metro\n at the census tract level",
+        subtitle = "An R 'sf' Example") + theme_minimal()
+```
+
+##Our Output
+
+```{r, echo=FALSE, message=TRUE, warning=FALSE}
+if(!require(pacman)){install.packages("pacman"); library(pacman)}
+p_load(sf, tigris, viridis, ggthemes, ggplot2, tidycensus, stringr, dplyr)
+options(tigris_class = "sf", tigris_use_cache = TRUE)
+
+#stretch example is MHI at census tract level for METRO counties
+#gonna collect census tracts with geography, sum up to counties for graph
+
+#key <- census_api_key("c67f1b3134300374d51a55c543649f843fb7d2b3",install = TRUE)
+acs_key <- Sys.getenv("CENSUS_API_KEY")
+
+vartabs <- load_variables(year = 2015, dataset = "acs5")
+
+mhi_tables <- c("B19013_001")
+
+#download tracts and county, get the tracts for PDX Metro counties and counties for the state
+
+mhi_tract <- get_acs(geography = "tract", variables = mhi_tables, state = "OR", geometry = TRUE)
+mhi_tract <- mhi_tract %>% mutate(CountyFIPS = str_sub(GEOID, 1, 5))
+
+metro_counties <- c("41051", "41005", "41009", "41067", "41071") 
+metro_tract <- mhi_tract %>% filter(CountyFIPS %in% metro_counties)
+
+or_mhi_county <- get_acs(geography ="county", variables = mhi_tables, state = "OR", geometry = TRUE)
+
+#Metro tract map
+
+p1 <- ggplot() + geom_sf(data = metro_tract, aes(fill = estimate)) +
+  coord_sf(datum = NA) + 
+  theme(plot.title = element_text(size = 16, face = "bold", margin = margin(b=10))) +
+  theme(plot.subtitle = element_text(size = 14, margin = margin(b = -20))) +
+  theme(plot.caption = element_text(size = 9, margin = margin(t = -15), hjust = 0)) +
+  scale_fill_viridis(labels = scales::dollar, name = "MHI Estimate") +
+  labs( caption = "Source: US Census Bureau ACS (2011-2015)",
+        title = "Median Household Income for PDX Metro\n at the census tract level",
+        subtitle = "An R 'sf' Example") + theme_minimal()
+
+plot(p1)
+```
