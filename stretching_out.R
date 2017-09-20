@@ -52,22 +52,52 @@ p2 <- ggplot() + geom_sf(data = or_mhi_county, aes(fill = estimate)) +
 
 
 
-  pov_share_wide <- pov_wide %>% 
-                        mutate(WhitePov = (B17020H_002E/B17020H_001E)*100, 
-                               BlackPov = (B17020B_002E/B17020B_001E)*100) %>% 
-                        select(GEOID, NAME, WhitePov, BlackPov)
+#vulnerability index, get poverty, White/NonWhite, <5, 64<
 
-pov_share_wide <- pov_share_wide %>% mutate(PovDiff = BlackPov - WhitePov)
-pov_share_wide <- arrange(pov_share_wide, desc(PovDiff))
+vul_vars <- c("B17001_001", "B17001_002",  "B02001_001", "B02001_002", "B01001_003", 
+              "B01001_020","B01001_021", "B01001_022", "B01001_023", "B01001_024", 
+              "B01001_025","B01001_027", "B01001_044", "B01001_045", "B01001_046", 
+              "B01001_047", "B01001_048", "B01001_049")
 
-pov_share_wide$NAME <- factor(pov_share_wide$NAME, levels = rev(pov_share_wide$NAME))
-#Follow Bob Rudis guide here: https://rud.is/b/2016/04/17/ggplot2-exercising-with-ggalt-dumbbells/
-#building out the plot
+vul_acs <- get_acs(geography = "tract", variables = vul_vars, state = "OR", output = "wide")
+vul_acs <- vul_acs %>% mutate(CountyFIPS = str_sub(GEOID, 1, 5))
 
-gg <- ggplot()
-gg <- gg + geom_segment(data = pov_share_wide, aes(y = NAME, yend = NAME, x = 0, xend = 1,
-                                                   color = "#b2b2b2", size = .15))
+vul2 <- vul_acs %>% mutate(PovShare = B17001_002E/B17001_001E,
+                          NonWhite = (B02001_001E - B02001_002E)/B02001_001E,
+                           Under5 = (B01001_003E + B01001_027E)/B02001_001E,
+                           Older64Male = B01001_020E + B01001_021E + B01001_022E +
+                             B01001_023E + B01001_024E +B01001_025E, 
+                           Older64Female = B01001_044E + B01001_045E + B01001_046E +
+                             B01001_047E + B01001_048E + B01001_049E, 
+                           Older64 = (Older64Male + Older64Female)/B02001_001E) %>% 
+  select(NAME, GEOID, CountyFIPS, PovShare, NonWhite, Under5, Older64)
 
-gg <- gg + geom_dumbbell(data = pov_share_wide, aes(y = NAME, x = WhitePov, xend = BlackPov),
-                         size = 1.5, color = "#b2b2b2", point.size.l = 3, point.size.r = 3,
-                         point.colour.l = "#9fb059", point.colour.r = "#edae52")
+vul2 <- vul2 %>% 
+  mutate(z_Pov = (PovShare - mean(PovShare, na.rm = TRUE))/sd(PovShare, na.rm = TRUE),
+         z_NonWhite = (NonWhite - mean(NonWhite, na.rm = TRUE))/sd(NonWhite, na.rm = TRUE),
+         z_Under5 = (Under5 - mean(Under5, na.rm = TRUE))/sd(Under5, na.rm = TRUE),
+         z_Older64 = (Older64 - mean(Older64, na.rm = TRUE))/sd(Older64, na.rm = TRUE))
+
+vul2 <- vul2 %>% 
+  mutate(VulIndex = (z_Pov + z_NonWhite + z_Under5 + z_Older64)/4) %>% 
+  select(GEOID, CountyFIPS, z_Pov, z_NonWhite, z_Under5, z_Older64, VulIndex)
+
+metro_counties <- c("41051", "41005", "41009", "41067", "41071") 
+
+vul2 <- vul2 %>% filter(CountyFIPS %in% metro_counties)
+
+or_tracts <- tracts(state = "OR")
+
+metro_vul <- inner_join(vul2, or_tracts, by = c("GEOID" = "GEOID")) %>% 
+  select(1:7, geometry) %>% st_as_sf()
+
+p4 <- ggplot() + geom_sf(data = metro_vul, aes(fill = VulIndex)) +
+  coord_sf(datum = NA) +
+  theme(plot.title = element_text(size = 16, face = "bold"),
+        plot.subtitle = element_text(size = 14),
+        plot.caption = element_text(size = 9)) +
+  scale_fill_viridis(name = "Social Vulnerability Measure") +
+  labs(title = "Social Vulnerability for Metro oregon",
+       subtitle = "An R 'sf' example",
+       caption = "Source: US Census Bureau ACS (2011-2015)") +
+  theme_minimal()
