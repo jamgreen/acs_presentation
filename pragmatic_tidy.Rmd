@@ -1,5 +1,5 @@
 ---
-title: "A Pragmatic Approach to Census Analsysis:\n Tidycensus and R"
+title: "A Pragmatic Approach to Census Analysis:\n Tidycensus and R"
 author: "Jamaal Green"
 date: "September 19, 2017"
 geometry: margin=2cm
