@@ -1,0 +1,161 @@
+---
+title: 'Census, LEHD and Planning: An R Approach'
+author: "Jamaal Green"
+institute: "Portland State University"
+date: "12/10/2018"
+output: 
+  beamer_presentation:
+    theme: "Montpellier"
+    colortheme: "beetle"
+    fonttheme: "structurebold"
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+# Introduction
+
+
+## Good Morning
+
+- Doctoral candidate here in TSUSP, planning on defending this spring
+- My dissertation focuses on issues surrounding industrial land use policy
+- My GRA work deals with a mix of mapping, some spatial analysis, census data wrangling and some modeling
+
+## Goals for today
+
+- Discuss *tidycensus* and my day-to-day workflows
+- Introducing *lehdr*
+- Dissertating with R
+
+# Tidycensus and the Day-to-Day
+
+## Tidycensus- Game Changer
+
+- *tidycensus* is an R packaged authored and maintained by Prof. Kyle Walker at TCU
+- a wrapper of the censusapi package and simplifies calls to grab ACS data, in particular
+- radically simplifies and streamlines traditional census workflows, particularly with GIS and gives us data in a "tidy" format
+
+## Tigris
+
+- a package for grabbing Tiger/Line shapefiles
+- also authored by Kyle Walker
+- *tidycensus* depends on tigris bringing tabular and spatial data calls in one
+
+
+## My old workflow
+
+- Tabular Data collection/import (FactFinder or DataFerret for ACS/Decennial)
+- Spatial Data collection(Tigerline files)
+- Tabular data cleaning and munging in excel 
+- Table to spatial data joins in Arc (successful maybe 40% of the time on first attempt) 
+- If making maps...spatial processing (clips, intersections, spatial joins)
+- Other visualizations and report writing (excel, word, and ppt)
+
+##  Can tidycensus do all that?!
+
+>-  No
+>-  But tidycensus, in particular, directly solves aspects of the first three areas
+>-  In combination with additional packages from the tidyverse (particularly *dplyr* and *ggplot*) and the spatial package *sf* all data processing can be done with R
+
+## An Example
+
+Our assignment: Get latest 5 year MHI for Multnomah County at Tract Level and graph the results (as an added bonus, and in the interest of transparency, let's include CVs)
+
+```
+install.packages("pacman"); library(pacman)
+p_load(ggplot2, tidycensus, dplyr)
+
+acs_key <- Sys.getenv("CENSUS_API_KEY")
+
+#Enter the variables and geographies below
+census_title <- c("Median Household Income by County:\n 
+Coefficient of Variation")
+census_var <- c("B19013_001E")
+census_geog <- c("county")
+census_state <- c("or")
+```
+
+## The tidycensus call
+
+```
+acs_data <- get_acs(geography = census_geog, variables = 
+census_var, state = census_state, output = "wide")
+
+#Make more readable column names
+acs_data <- acs_data %>% 
+rename(MHI_est = B19013_001E , MHI_moe = B19013_001M)
+
+#Calculate the SE, CV for future reference
+acs_data <- acs_data %>% 
+mutate(se = MHI_moe/1.645, cv = (se/MHI_est)*100)
+
+```
+
+## Finally, to the plot...
+
+```
+#Plot Percentages with Derived MOE
+acs_plot <- acs_data %>%
+  ggplot(aes(x = MHI_est, y = reorder(NAME, MHI_est))) +
+  geom_point(color = "black", size = 2) +
+  geom_errorbarh(aes(xmin = MHI_est - MHI_moe, 
+  xmax = MHI_est + MHI_moe )) +
+  labs(title = paste(census_title),
+       subtitle = paste0("Oregon 2011-2015 American 
+       Community Survey"),
+       y = "",
+       x = "Median Household Income") + 
+  scale_x_continuous(labels = scales::dollar) + 
+  theme_minimal() +
+  theme(panel.grid.minor.x  = element_blank(),
+        panel.grid.major.x = element_blank())
+
+plot(acs_plot)
+```
+
+
+## Sample Output 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+if(!require(pacman)){install.packages("pacman"); library(pacman)}
+p_load(ggplot2, tidycensus, dplyr)
+
+
+#key <- census_api_key("c67f1b3134300374d51a55c543649f843fb7d2b3",install = TRUE)
+acs_key <- Sys.getenv("CENSUS_API_KEY")
+
+#Enter the variables and geographies below
+census_title <- c("Median Household Income by County:\n Coefficient of Variation")
+census_var <- c("B19013_001E")
+census_geog <- c("county")
+census_state <- c("or")
+
+
+acs_data <- get_acs(geography = census_geog, variables = census_var, state = census_state, 
+                    output = "wide")
+
+#Make more readable column names
+acs_data <- acs_data %>% rename(MHI_est = B19013_001E , MHI_moe = B19013_001M)
+
+#Calculate the SE, CV for future reference
+acs_data <- acs_data %>% mutate(se = MHI_moe/1.645, cv = (se/MHI_est)*100)
+
+
+
+#Plot Percentages with Derived MOE
+acs_plot <- acs_data %>%
+  ggplot(aes(x = MHI_est, y = reorder(NAME, MHI_est))) +
+  geom_point(color = "black", size = 2) +
+  geom_errorbarh(aes(xmin = MHI_est - MHI_moe, xmax = MHI_est + MHI_moe )) +
+  labs(title = paste(census_title),
+       subtitle = paste0("Oregon 2011-2015 American Community Survey"),
+       y = "",
+       x = "Median Household Income") + 
+  scale_x_continuous(labels = scales::dollar) + theme_minimal() +
+  theme(panel.grid.minor.x  = element_blank(),
+        panel.grid.major.x = element_blank())
+
+print(acs_plot)
+```
