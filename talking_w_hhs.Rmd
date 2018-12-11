@@ -71,7 +71,7 @@ acs_key <- Sys.getenv("CENSUS_API_KEY")
 
 #Enter the variables and geographies below
 census_title <- c("Median Household Income by County:\n 
-Coefficient of Variation")
+Margin of Error")
 census_var <- c("B19013_001E")
 census_geog <- c("county")
 census_state <- c("or")
@@ -127,7 +127,7 @@ p_load(ggplot2, tidycensus, dplyr)
 acs_key <- Sys.getenv("CENSUS_API_KEY")
 
 #Enter the variables and geographies below
-census_title <- c("Median Household Income by County:\n Coefficient of Variation")
+census_title <- c("Median Household Income by County:\n Margin of Error")
 census_var <- c("B19013_001E")
 census_geog <- c("county")
 census_state <- c("or")
@@ -158,4 +158,95 @@ acs_plot <- acs_data %>%
         panel.grid.major.x = element_blank())
 
 print(acs_plot)
+```
+
+## Extending the package
+
+ Let's make it spatial...going to map MHI at tract level for the PDX MSA
+ 
+## Setting it up
+```
+mhi_tables <- c("B19013_001")
+
+mhi_tract <- get_acs(geography = "tract", 
+                     variables = mhi_tables, 
+                     state = "OR", 
+                     geometry = TRUE)
+
+mhi_tract <- mhi_tract %>% 
+  mutate(CountyFIPS = str_sub(GEOID, 1, 5))
+
+metro_counties <- c("41051", "41005", "41009", "41067", 
+"41071") 
+
+metro_tract <- mhi_tract %>% 
+  filter(CountyFIPS %in% metro_counties)
+  
+```
+\end{small}
+
+## Finalizing plot with *sf* and *ggplot*
+
+```
+p1 <- ggplot() + 
+  geom_sf(data = metro_tract, aes(fill = estimate)) +
+  coord_sf(datum = NA) + 
+  theme(plot.title = element_text(size = 16, 
+                    face = "bold", margin = margin(b=10))) +
+  theme(plot.subtitle = element_text(size = 14, 
+                      margin = margin(b = -20))) +
+  theme(plot.caption = element_text(size = 9, 
+                    margin = margin(t = -15), hjust = 0)) +
+  scale_fill_viridis(labels = scales::dollar, 
+                     name = "MHI Estimate") +
+  labs(caption = "Source: US Census Bureau ACS (2011-2015)",
+        title = "Median Household Income for PDX Metro\n 
+        at the census tract level",
+        subtitle = "An R 'sf' Example") + theme_minimal()
+
+
+```
+
+## Our result
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+if(!require(pacman)){install.packages("pacman"); 
+  library(pacman)}
+p_load(sf, tigris, viridis, ggthemes, ggplot2, 
+       tidycensus, stringr, dplyr)
+options(tigris_class = "sf", tigris_use_cache = TRUE)
+
+mhi_tables <- c("B19013_001")
+
+
+mhi_tract <- get_acs(geography = "tract", 
+                     variables = mhi_tables, 
+                     state = "OR", 
+                     geometry = TRUE)
+
+mhi_tract <- mhi_tract %>% 
+  mutate(CountyFIPS = str_sub(GEOID, 1, 5))
+
+metro_counties <- c("41051", "41005", "41009", "41067", "41071") 
+metro_tract <- mhi_tract %>% 
+  filter(CountyFIPS %in% metro_counties)
+
+p1 <- ggplot() + 
+  geom_sf(data = metro_tract, aes(fill = estimate)) +
+  coord_sf(datum = NA) + 
+  theme(plot.title = element_text(size = 16, 
+                    face = "bold", margin = margin(b=10))) +
+  theme(plot.subtitle = element_text(size = 14, 
+                      margin = margin(b = -20))) +
+  theme(plot.caption = element_text(size = 9, 
+                    margin = margin(t = -15), hjust = 0)) +
+  scale_fill_viridis(labels = scales::dollar, 
+                     name = "MHI Estimate") +
+  labs(caption = "Source: US Census Bureau ACS (2011-2015)",
+        title = "Median Household Income for PDX Metro\n at the census tract level",
+        subtitle = "An R 'sf' Example") + theme_minimal()
+
+plot(p1)
+
 ```
