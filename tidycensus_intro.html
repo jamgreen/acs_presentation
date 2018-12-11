@@ -470,19 +470,19 @@ document.getElementsByTagName('head')[0].appendChild(style);
 <p><link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.min.css" rel="stylesheet" type="text/css"/></p>
 </section>
 <section><section id="introduction" class="titleslide slide level1"><h1>Introduction</h1></section><section id="about-me" class="slide level2">
-<h1>About Me</h1>
+<h2>About Me</h2>
 <ul>
 <li class="fragment">PhD Candidate in Urban Studies and Planning</li>
 <li class="fragment">My dissertation is examining industrial zoning and labor market change</li>
 <li class="fragment">I use a pretty wide array of census products for work (ACS, PUMS, LEHD)</li>
 </ul>
 </section><section id="a-pragmatic-approach" class="slide level2">
-<h1>A Pragmatic Approach</h1>
+<h2>A Pragmatic Approach</h2>
 <p>“Let the question guide your method”</p>
 <p>Likewise…</p>
 <p>Let your problems guide your tools</p>
 </section><section id="whats-your-workflow-normally-resemble" class="slide level2">
-<h1>What’s your workflow normally resemble?</h1>
+<h2>What’s your workflow normally resemble?</h2>
 <p>The steps many social data analysts and GIS user have to make:</p>
 <ul>
 <li class="fragment">Tabular Data collection/import (for us clearly varied Census products)</li>
@@ -494,24 +494,25 @@ document.getElementsByTagName('head')[0].appendChild(style);
 </ul>
 </section></section>
 <section><section id="enter-r" class="titleslide slide level1"><h1>Enter R</h1></section><section id="what-is-r" class="slide level2">
-<h1>What is R?</h1>
+<h2>What is R?</h2>
 <ul>
 <li class="fragment">A powerful language</li>
 <li class="fragment">Application</li>
 <li class="fragment">“Do it all” workbench</li>
 </ul>
 </section><section id="but-why-r" class="slide level2">
-<h1>But why R?</h1>
+<h2>But why R?</h2>
 <ul>
 <li class="fragment">It’s free</li>
 <li class="fragment">It’s fast</li>
 <li class="fragment">It’s data type agnostic (read any variety of text files, .shp. GEOJSON, GEOTIFF)</li>
 <li class="fragment">Massive number of packages for statistical or spatial analysis and visualization</li>
 <li class="fragment">Many things that are hard or slow in other applications (table joins in Arc, anyone?) are fast in R</li>
+<li class="fragment">Large, helpful online community and growing variety of books/guides/courses</li>
 <li class="fragment">IT’S FREE</li>
 </ul>
 </section><section id="but-why-should-i" class="slide level2">
-<h1>But why should I?</h1>
+<h2>But why should I?</h2>
 <p>Has the following ever happened to you?</p>
 <ul>
 <li class="fragment">Need to download multiple variables over multiple years and you get a data folder filled with ambiguously named tables that you end up deleting anyway?</li>
@@ -519,21 +520,21 @@ document.getElementsByTagName('head')[0].appendChild(style);
 <li class="fragment">Attempted to rename a column in ArcMap (yes, I know this is now available in ArcPro)?</li>
 </ul>
 </section><section id="lets-be-pragmatic" class="slide level2">
-<h1>Let’s Be Pragmatic</h1>
+<h2>Let’s Be Pragmatic</h2>
 <section style="text-align: left;">
-<p>These recurring challenges can be fully, or partially addressed, by learning a little bit of R (or some other scripting language, depending on your need)</p>
+<p>These recurring challenges can be better addressed (saving yourself precious time) by learning a little bit of R</p>
 <p>Let’s take an example…</p>
 </section>
 </section></section>
 <section><section id="tidycensusa-better-way" class="titleslide slide level1"><h1>Tidycensus…A Better Way</h1></section><section id="tidycensusone-stop-shop-for-acs-data" class="slide level2">
-<h1>Tidycensus…one stop shop for ACS data</h1>
+<h2>Tidycensus…one stop shop for ACS data</h2>
 <ul>
 <li class="fragment">R package authored by Prof. Kyle Walker at TCU to make gathering and visualizing census data easier</li>
 <li class="fragment">The package uses the census API to call ACS and decennial data as well as ACS Data Profile tables</li>
 <li class="fragment">Data is returned in either wide or long format and there is an option to join the data to its appropriate Tigerline geometry</li>
 </ul>
 </section><section id="a-quick-example" class="slide level2">
-<h1>A quick example…</h1>
+<h2>A quick example…</h2>
 <p>Our assignment: Get latest 5 year MHI for Multnomah County at Tract Level and graph the results (as an added bonus, and in the interest of transparency, let’s include CVs)</p>
 <pre><code>if(!require(pacman)){install.packages(&quot;pacman&quot;); library(pacman)}
 p_load(ggplot2, tidycensus, dplyr)
@@ -541,14 +542,15 @@ p_load(ggplot2, tidycensus, dplyr)
 acs_key &lt;- Sys.getenv(&quot;CENSUS_API_KEY&quot;)
 
 #Enter the variables and geographies below
-census_title &lt;- c(&quot;Median Household Income by County:\n Coefficient of Variation&quot;)
+census_title &lt;- c(&quot;Median Household Income by County:\n 
+Coefficient of Variation&quot;)
 census_var &lt;- c(&quot;B19013_001E&quot;)
 census_geog &lt;- c(&quot;county&quot;)
 census_state &lt;- c(&quot;or&quot;)
 
 
-acs_data &lt;- get_acs(geography = census_geog, variables = census_var, state = census_state, 
-                    output = &quot;wide&quot;)
+acs_data &lt;- get_acs(geography = census_geog, variables = 
+census_var, state = census_state, output = &quot;wide&quot;)
 
 #Make more readable column names
 acs_data &lt;- acs_data %&gt;% rename(MHI_est = B19013_001E , MHI_moe = B19013_001M)
@@ -574,8 +576,46 @@ acs_plot &lt;- acs_data %&gt;%
 plot(acs_plot)
 </code></pre>
 </section><section id="our-output" class="slide level2">
-<h1>Our Output</h1>
+<h2>Our Output</h2>
 <p><img src="tidycensus_intro_files/figure-revealjs/unnamed-chunk-2-1.png" width="768" /></p>
+</section></section>
+<section><section id="mapping-it-out" class="titleslide slide level1"><h1>Mapping It Out</h1></section><section id="r-as-a-gis--tigris-and-sf" class="slide level2">
+<h2>R as a GIS- tigris and sf</h2>
+<p>tigris- a package that will download tigerline shapefiles</p>
+<p>simple features- uses well known text to signify geometry allowing for spatial objects to be treated as dataframes</p>
+</section><section id="tract-processing-tidyverse-style" class="slide level2">
+<h2>Tract Processing tidyverse style</h2>
+<pre><code>if(!require(pacman)){install.packages(&quot;pacman&quot;); library(pacman)}
+p_load(sf, tigris, viridis, ggthemes, ggplot2, tidycensus, stringr, dplyr)
+options(tigris_class = &quot;sf&quot;, tigris_use_cache = TRUE)
+
+acs_key &lt;- Sys.getenv(&quot;CENSUS_API_KEY&quot;)
+
+mhi_tables &lt;- c(&quot;B19013_001&quot;)
+
+#download tracts and county, get the tracts for PDX Metro counties and counties for the state
+
+mhi_tract &lt;- get_acs(geography = &quot;tract&quot;, variables = mhi_tables, state = &quot;OR&quot;, geometry = TRUE)
+mhi_tract &lt;- mhi_tract %&gt;% mutate(CountyFIPS = str_sub(GEOID, 1, 5))
+
+metro_counties &lt;- c(&quot;41051&quot;, &quot;41005&quot;, &quot;41009&quot;, &quot;41067&quot;, &quot;41071&quot;) 
+metro_tract &lt;- mhi_tract %&gt;% filter(CountyFIPS %in% metro_counties)
+
+or_mhi_county &lt;- get_acs(geography =&quot;county&quot;, variables = mhi_tables, state = &quot;OR&quot;, geometry = TRUE)</code></pre>
+</section><section id="our-tract-map-set-up" class="slide level2">
+<h2>Our Tract Map Set Up</h2>
+<pre><code>p1 &lt;- ggplot() + geom_sf(data = metro_tract, aes(fill = estimate)) +
+  coord_sf(datum = NA) + 
+  theme(plot.title = element_text(size = 16, face = &quot;bold&quot;, margin = margin(b=10))) +
+  theme(plot.subtitle = element_text(size = 14, margin = margin(b = -20))) +
+  theme(plot.caption = element_text(size = 9, margin = margin(t = -15), hjust = 0)) +
+  scale_fill_viridis(labels = scales::dollar, name = &quot;MHI Estimate&quot;) +
+  labs( caption = &quot;Source: US Census Bureau ACS (2011-2015)&quot;,
+        title = &quot;Median Household Income for PDX Metro\n at the census tract level&quot;,
+        subtitle = &quot;An R &#39;sf&#39; Example&quot;) + theme_minimal()</code></pre>
+</section><section id="our-output-1" class="slide level2">
+<h2>Our Output</h2>
+<p><img src="tidycensus_intro_files/figure-revealjs/unnamed-chunk-3-1.png" width="768" /></p>
 </section></section>
     </div>
   </div>
