@@ -32,14 +32,20 @@ or_lehd <- or_lehd %>%
   mutate(county_fips = str_sub(w_bg, 1, 5)) %>% 
   filter(county_fips == "41051")
 
-or_lehd <- or_lehd %>% left_join(or_bg, by = c("w_bg" = "geoid"))
+or_lehd <- or_lehd %>% 
+  left_join(or_bg, by = c("w_bg" = "geoid"))
 
 #prep year into proper date and export
 
-or_lehd <- or_lehd %>% mutate(lehd_date = paste0(year,"-01-01")) 
+or_lehd <- or_lehd %>%
+  mutate(lehd_date = paste0(year,"-01-01"))
+
 or_lehd$lehd_date <- as.Date(or_lehd$lehd_date, format = "%Y-%m-%d")
 
-or_lehd <- or_lehd %>% st_as_sf(sf_column_name = "geom")
-or_lehd <- or_lehd %>% st_transform(crs = 2992)
+or_lehd <- or_lehd %>% 
+  st_as_sf(sf_column_name = "geom")
+
+or_lehd <- or_lehd %>% 
+  st_transform(crs = 2992)
 
 st_write(or_lehd, "multco_mfg_lehd.shp")
