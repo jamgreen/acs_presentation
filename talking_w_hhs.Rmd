@@ -349,3 +349,92 @@ or_lehd <- or_lehd %>%
 
 st_write(or_lehd, "multco_mfg_lehd.shp")
 ```
+
+##  One result
+
+# The Dissertation
+
+## Problem Statement
+
+Nancey Green-Leigh (2012) exposes smart growth's "blindisde" concerning the management of industrial land. A lot of "sustainable development" policies and approaches ignore or are explicitly hostile to industrial land in cities. 
+
+More personal question: why would a city convert a healthy industrial district? PDX protects industrial land, does it work?
+
+## Research Questions
+
+>- Who is actually protecting industrial land? What are the features of these policies?
+>- In cities that do protect industrial land, has it been effective?
+>- How do planners view industrial land and the political/institutional contexts in which they operate? How does industrial land protection policy transform planning practice?
+
+## Who's protecting industrial land?
+
+- I reviewed the zoning codes and comp plans of the fifty largest cities in the US in order to identify protective policies
+- Had two rules for identification
+  - The policy must be distinct from already existing industrial zoning 
+  - The language of the policy should frame industrial land as an *asset*
+
+## An archteypal example
+
+Chicago's planned manufacturing district ordinance mentions fostering the city's industrial base and diversifying the economy as primary goals.
+
+## Quick Results
+
+- I've identified 11 cities out of the 50 largest that have some form of industrial land policy
+- Cities use a variety of approaches to enforcement largely under either additional "use" restrictions or more burdensome "process"
+
+##  Do these policies work?
+
+My most computationally intensive chapter. Basic question: do industrial land protections actually protect industrial jobs?
+
+## Data
+
+- LEHD WAC data for the 48 largest cities from 2004, 2009, 2015 at block group level
+- 2006-2010 ACS data, housing prices, % renters, race/ethnicity at block group level
+- City center points
+- Spatial polygons for industrial districts
+
+## Methodology- Data Preparation
+
+- used *lehdr* and *tidycensus* to collect LEHD and ACS data, respectively
+- had to create NYC IBZs from PDF and add to industrial district layer
+- use PostGIS, from R, to get distance measures from city center to each block group
+- create dummy variables for block groups where their centroids fell within industrial districts
+- grab manufacturing employment from LEHD and "industrial" employment including warehousing/logistics, mining/ag, and construction
+
+## Methodology- Analysis
+
+- estimate inverse probability weighted propensity scores using *ipw* package and the ACS data - run a basic regression model with dependent variable $\Delta Mfg. Emp$, $\Delta Ind. Emp$ and indepedent variable $\beta_{1}District.dummy_{propensity score}$
+
+## Results
+
+>- Industrial district protection do not, in my specification, protect *manufacturing jobs*
+>- Industrial district protection does, in my specification, protect a more widely defined class of *industrial* jobs
+>-  Will continue to troubleshoot model
+
+## How do planners view industrial land, in practice?
+
+- Final chapter seeks to figure out how planners view industrial land preservation and what institutional changes, if any, accompany these new policies
+- This matters because these policies signal a potential new hybrid economic development/land use strategy that challenges traditional planning roles and institutions
+
+## Methodology
+
+- Wrote a survey and sent to planning and economic development offices in the nation's fifty largest cities
+- Sought professionals who deal directly with industrial land management/development
+- Asked questions about personal views of the policy, any political pressure planners may receive around industrial land issues and city strategies
+- Separately reviewed planning documents and organizational structure to try and suss out institutional change/transformation
+
+## Results
+
+- 18/50 responses. Not terrible response rate, not attempting to generalize. Purely descriptive.
+- Respondents generally view industrial land as an *asset*, most projected cities can meet industrial land demand into medium term (10-15 years) but cities with protective policies largely expressed acute shortages (1-5 years)
+- Industrial strategy is often divorced from traditional land-use purview. A potential inefficiency and gap. 
+- Cities with industrial policies do exhibit some substantive institutional and practical change
+
+## Results- Institutional Change
+
+>-  New/additional reporting requirements (industrial land audits)
+>-  Industrial land development reviews require new approaches or additional scrutiny
+>-  Industrial land is now actively managed like any other city resource, requiring additional staff time
+>-  Potentially new connections between development and planning agencies
+>-  The rise of intermediaries responsible for industrial district support
+
